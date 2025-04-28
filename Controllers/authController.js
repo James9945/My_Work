@@ -21,26 +21,41 @@ const register = async (req, res) => {
 
 //login Control
 const login = async (req, res) => {
-    try{
-    const {username, password} = req.body;
-    const user = await User.findOne({username});
-    if(!user){
-        return res.status(404).json({message:"User not found"})
-    };
-    
-    const ismatch = await bcrypt.compare(password, user.password);
-    if(!ismatch){
-        return res.status(400).json({message: "Invalid Credentials"});
-    };
-
-    const token = jwt.sign({id: user._id, role:user.role},
-     process.env.JWT_SECRET, {expiresIn: "1h"} 
-     );
-} catch(err){
-    res.status(500).json({message:err.message});
-}
-
-};
+    try {
+      const { username, password } = req.body;
+      const user = await User.findOne({ username });
+  
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+  
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
+        return res.status(400).json({ message: "Invalid Credentials" });
+      }
+  
+      const token = jwt.sign(
+        { id: user._id, role: user.role },
+        process.env.JWT_SECRET,
+        { expiresIn: "1h" }
+      );
+  
+      // ✅ SEND RESPONSE BACK TO CLIENT
+      res.status(200).json({
+        message: "Login successful",
+        token,
+        user: {
+          id: user._id,
+          username: user.username,
+          role: user.role
+        }
+      });
+  
+    } catch (err) {
+      res.status(500).json({ message: err.message });
+    }
+  };
+  
 
 module.exports = {
     register,
